@@ -12,7 +12,15 @@ import { ProductDetailsDrawer } from "@/components/inventory/ProductDetailsDrawe
 import { AiAssistantDrawer } from "@/components/inventory/AiAssistantDrawer";
 import type { ComputedRow, Confidence, Priority, Product, ProductSuggestion } from "@/types/inventory";
 
-const API_BASE_URL = "http://localhost:3000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
+
+const apiUrl = (path: string) => {
+  if (!API_BASE_URL) {
+    throw new Error("Configure VITE_API_BASE_URL no arquivo .env.");
+  }
+
+  return `${API_BASE_URL}${path}`;
+};
 
 type BranchApi = {
   id: number;
@@ -159,7 +167,14 @@ const Index = () => {
   useEffect(() => {
     let mounted = true;
 
-    fetch(`${API_BASE_URL}/branches`)
+    if (!API_BASE_URL) {
+      toast.error("URL da API não configurada", {
+        description: "Configure VITE_API_BASE_URL no arquivo .env.",
+      });
+      return;
+    }
+
+    fetch(apiUrl("/branches"))
       .then((response) => {
         if (!response.ok) throw new Error("Falha ao listar filiais");
         return response.json() as Promise<BranchApi[]>;
@@ -190,7 +205,7 @@ const Index = () => {
 
     setGenerating(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/purchase-suggestions/generate`, {
+      const response = await fetch(apiUrl("/purchase-suggestions/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ filial_id: Number(selectedBranchId) }),
