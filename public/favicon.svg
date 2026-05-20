@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="LOGISTIX.OS">
+  <rect width="64" height="64" rx="12" fill="#080a0d"/>
+  <path d="M14 18h36v7H14zM14 29h28v7H14zM14 40h36v7H14z" fill="#f8fafc"/>
+  <path d="M46 29h4v7h-4z" fill="#3b82f6"/>
+  <path d="M14 18h10v29H14z" fill="#22c55e"/>
+</svg>

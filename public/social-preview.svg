@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Gestão de Abastecimento LOGISTIX.OS">
+  <rect width="1200" height="630" fill="#080a0d"/>
+  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#11151b" stroke="#27313d" stroke-width="2"/>
+  <path d="M132 152h228v44H132zM132 222h168v44H132zM132 292h228v44H132z" fill="#f8fafc"/>
+  <path d="M392 152h60v44h-60zM332 222h120v44H332zM392 292h60v44h-60z" fill="#3b82f6"/>
+  <path d="M132 152h54v184h-54z" fill="#22c55e"/>
+  <text x="540" y="236" fill="#f8fafc" font-family="Inter, Arial, sans-serif" font-size="58" font-weight="700">LOGISTIX.OS</text>
+  <text x="540" y="304" fill="#94a3b8" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="500">Gestão de Abastecimento</text>
+  <text x="540" y="360" fill="#cbd5e1" font-family="Inter, Arial, sans-serif" font-size="24">Sugestões inteligentes de compra e controle operacional</text>
+  <path d="M540 424h420" stroke="#27313d" stroke-width="2"/>
+  <circle cx="560" cy="474" r="10" fill="#ef4444"/>
+  <circle cx="640" cy="474" r="10" fill="#f59e0b"/>
+  <circle cx="720" cy="474" r="10" fill="#3b82f6"/>
+  <circle cx="800" cy="474" r="10" fill="#22c55e"/>
+</svg>
