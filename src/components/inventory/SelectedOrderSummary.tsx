@@ -1,20 +1,33 @@
 import { ShoppingCart, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatPalletCount, formatQuantity } from "@/lib/pallets";
 
 interface Props {
   count: number;
   totalUnits: number;
   totalPallets: number;
+  simplePallets: number;
+  mixedPallets: number;
+  unclassifiedPallets: number;
   estimatedValue: number;
   onClear: () => void;
   onGenerate: () => void;
 }
 
-export function SelectedOrderSummary({ count, totalUnits, totalPallets, estimatedValue, onClear, onGenerate }: Props) {
+export function SelectedOrderSummary({
+  count,
+  totalUnits,
+  totalPallets,
+  simplePallets,
+  mixedPallets,
+  unclassifiedPallets,
+  estimatedValue,
+  onClear,
+  onGenerate,
+}: Props) {
   if (count === 0) return null;
 
   const fmtBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-  const fmtNum = new Intl.NumberFormat("pt-BR");
 
   return (
     <div className="fixed bottom-0 left-0 right-0 lg:left-64 z-20 animate-slide-up">
@@ -34,13 +47,32 @@ export function SelectedOrderSummary({ count, totalUnits, totalPallets, estimate
 
           <div>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Unidades</div>
-            <div className="text-sm font-mono font-semibold tabular-nums">{fmtNum.format(totalUnits)}</div>
+            <div className="text-sm font-mono font-semibold tabular-nums">{formatQuantity(totalUnits)}</div>
           </div>
 
           <div>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Pallets</div>
-            <div className="text-sm font-mono font-semibold tabular-nums">{totalPallets.toFixed(1)}</div>
+            <div className="text-sm font-mono font-semibold tabular-nums">{formatPalletCount(totalPallets)}</div>
           </div>
+
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Cheio</div>
+            <div className="text-sm font-mono font-semibold tabular-nums">{formatPalletCount(simplePallets)}</div>
+          </div>
+
+          <div>
+            <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Misto</div>
+            <div className="text-sm font-mono font-semibold tabular-nums">{formatPalletCount(mixedPallets)}</div>
+          </div>
+
+          {unclassifiedPallets > 0 && (
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Sem ponto</div>
+              <div className="text-sm font-mono font-semibold tabular-nums">
+                {formatPalletCount(unclassifiedPallets)}
+              </div>
+            </div>
+          )}
 
           <div>
             <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Valor estimado</div>

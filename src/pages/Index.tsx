@@ -10,7 +10,8 @@ import { SelectedOrderSummary } from "@/components/inventory/SelectedOrderSummar
 import { OrderReviewDrawer } from "@/components/inventory/OrderReviewDrawer";
 import { ProductDetailsDrawer } from "@/components/inventory/ProductDetailsDrawer";
 import { AiAssistantDrawer } from "@/components/inventory/AiAssistantDrawer";
-import type { ComputedRow, Confidence, Priority, Product, ProductSuggestion } from "@/types/inventory";
+import { calculatePalletCount, getPalletTotalsByLoadingPoint } from "@/lib/pallets";
+import type { ComputedRow, Confidence, LoadingPoint, Priority, Product, ProductSuggestion } from "@/types/inventory";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
 
@@ -55,6 +56,8 @@ type PurchaseSuggestionItemApi = {
   validationReason: string | null;
   manuallyEdited: boolean;
   editReason: string | null;
+  loadingPoint?: LoadingPoint | null;
+  loading_point?: LoadingPoint | null;
 };
 
 type PurchaseSuggestionGenerateResponse = {
@@ -89,6 +92,8 @@ const mapConfidence = (confidence: PurchaseSuggestionItemApi["confidence"]): Con
   return "low";
 };
 
+const mapLoadingPoint = (item: PurchaseSuggestionItemApi) => item.loadingPoint ?? item.loading_point ?? null;
+
 const branchLabel = (branch?: BranchApi) => {
   if (!branch) return "Filial";
   const location = [branch.city, branch.state].filter(Boolean).join(" / ");
@@ -107,6 +112,7 @@ const mapApiItemToRow = (
   const rawSuggestion = toNumber(item.suggestedQuantity);
   const finalSuggestion = toNumber(item.finalQuantity);
   const category = (item.categoryName ?? item.category_name ?? "").trim() || "Não informado";
+  const loadingPoint = mapLoadingPoint(item);
 
   const product: Product = {
     id: item.productId,
@@ -125,6 +131,7 @@ const mapApiItemToRow = (
     unitsPerPallet,
     unitPrice: 0,
     availableSupplierStock: Number.MAX_SAFE_INTEGER,
+    loadingPoint,
   };
 
   const suggestion: ProductSuggestion = {
@@ -137,7 +144,7 @@ const mapApiItemToRow = (
     priority: mapPriority(item.priority),
     confidence: mapConfidence(item.confidence),
     reason: [item.justification, item.validationReason, item.editReason].filter(Boolean).join(" ") || "Sem justificativa retornada pela API.",
-    palletCount: toNumber(item.totalPallets),
+    palletCount: calculatePalletCount(finalSuggestion, unitsPerPallet),
     multipleApplied: unitsPerPallet,
     supplierShort: false,
   };
@@ -156,6 +163,7 @@ const Index = () => {
   const [generated, setGenerated] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
+  const [generationBranchId, setGenerationBranchId] = useState("");
   const [branchById, setBranchById] = useState<Record<string, BranchApi>>({});
   const [rows, setRows] = useState<ComputedRow[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -184,6 +192,10 @@ const Index = () => {
         const activeBranches = data.filter((branch) => branch.status !== "INACTIVE");
         setBranches(activeBranches.map((branch) => ({ id: String(branch.id), name: branchLabel(branch) })));
         setBranchById(Object.fromEntries(activeBranches.map((branch) => [String(branch.id), branch])));
+        setGenerationBranchId((current) => {
+          if (current && activeBranches.some((branch) => String(branch.id) === current)) return current;
+          return String(activeBranches[0]?.id ?? "");
+        });
         setFilters((current) => {
           if (current.branchId !== "1" || activeBranches.some((branch) => String(branch.id) === "1")) return current;
           return { ...current, branchId: String(activeBranches[0]?.id ?? 1) };
@@ -200,15 +212,29 @@ const Index = () => {
     };
   }, []);
 
-  const generate = async () => {
-    const selectedBranchId = filters.branchId === "all" ? branches[0]?.id ?? "1" : filters.branchId;
+  const generate = async (selectedBranchId: string) => {
+    const branchId = Number(selectedBranchId);
+
+    if (!selectedBranchId || Number.isNaN(branchId)) {
+      toast.error("Selecione uma filial válida", {
+        description: "A filial é obrigatória para gerar a sugestão de compra.",
+      });
+      return false;
+    }
+
+    if (!branchById[selectedBranchId]) {
+      toast.error("Filial indisponível", {
+        description: "Atualize a lista de filiais e tente novamente.",
+      });
+      return false;
+    }
 
     setGenerating(true);
     try {
       const response = await fetch(apiUrl("/purchase-suggestions/generate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filial_id: Number(selectedBranchId) }),
+        body: JSON.stringify({ filial_id: branchId }),
       });
 
       if (!response.ok) {
@@ -230,6 +256,7 @@ const Index = () => {
       setRows(nextRows);
       setSelected(new Set());
       setGenerated(true);
+      setFilters((current) => ({ ...current, branchId: selectedBranchId }));
 
       if (data.erro) {
         toast.warning("Sugestão gerada com alertas", { description: data.erro });
@@ -238,10 +265,12 @@ const Index = () => {
           description: `${data.total_produtos_analisados ?? nextRows.length} produtos analisados pela API.`,
         });
       }
+      return true;
     } catch (error) {
       toast.error("Não foi possível gerar a sugestão para esta filial.", {
         description: error instanceof Error ? error.message : undefined,
       });
+      return false;
     } finally {
       setGenerating(false);
     }
@@ -333,7 +362,7 @@ const Index = () => {
           suggestion: {
             ...row.suggestion,
             editedSuggestion: qty,
-            palletCount: qty / Math.max(1, row.product.unitsPerPallet),
+            palletCount: calculatePalletCount(qty, row.product.unitsPerPallet),
           },
         };
       }),
@@ -345,11 +374,12 @@ const Index = () => {
     (acc, r) => {
       acc.units += r.suggestion.editedSuggestion;
       acc.value += r.suggestion.editedSuggestion * r.product.unitPrice;
-      acc.pallets += r.suggestion.editedSuggestion / Math.max(1, r.product.unitsPerPallet);
+      acc.pallets += calculatePalletCount(r.suggestion.editedSuggestion, r.product.unitsPerPallet);
       return acc;
     },
     { units: 0, value: 0, pallets: 0 },
   );
+  const selectedPalletTotals = getPalletTotalsByLoadingPoint(selectedRows);
 
   const openDetails = (row: ComputedRow) => {
     setDetailsRow(row);
@@ -379,6 +409,9 @@ const Index = () => {
             <GenerateSuggestionButton
               generated={generated}
               loading={generating}
+              branches={branches}
+              selectedBranchId={generationBranchId}
+              onSelectedBranchChange={setGenerationBranchId}
               onGenerate={generate}
               onRecalculate={generate}
               totalSuggested={metrics.totalUnits}
@@ -409,6 +442,9 @@ const Index = () => {
         count={selectedRows.length}
         totalUnits={selectedTotals.units}
         totalPallets={selectedTotals.pallets}
+        simplePallets={selectedPalletTotals.simple}
+        mixedPallets={selectedPalletTotals.mixed}
+        unclassifiedPallets={selectedPalletTotals.unclassified}
         estimatedValue={selectedTotals.value}
         onClear={() => setSelected(new Set())}
         onGenerate={() => setOrderOpen(true)}

@@ -1,6 +1,7 @@
 import { AlertOctagon, AlertTriangle, Boxes, CheckCircle2, Layers, PackageCheck, Target, Wallet } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatPalletCount } from "@/lib/pallets";
 
 interface Metric {
   label: string;
@@ -137,7 +138,7 @@ export function MetricsCards({
     },
     {
       label: "Pallets Estimados",
-      value: totalPallets.toFixed(1),
+      value: formatPalletCount(totalPallets),
       subtitle: "Com base em múltiplos logísticos",
       icon: Layers,
       tone: "neutral",

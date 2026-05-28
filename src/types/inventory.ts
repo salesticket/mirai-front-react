@@ -1,5 +1,12 @@
 export type Priority = "critical" | "attention" | "target" | "ok";
 export type Confidence = "high" | "medium" | "low";
+export type LoadingPointType = "SIMPLE" | "MIXED" | string;
+
+export interface LoadingPoint {
+  id: number;
+  name: string;
+  type: LoadingPointType;
+}
 
 export interface Product {
   id: string;
@@ -19,6 +26,7 @@ export interface Product {
   unitsPerPallet: number;
   unitPrice: number;
   availableSupplierStock: number;
+  loadingPoint?: LoadingPoint | null;
 }
 
 export interface ProductSuggestion {

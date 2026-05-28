@@ -6,6 +6,12 @@ import { ProductStatusBadge } from "./ProductStatusBadge";
 import type { ComputedRow } from "@/types/inventory";
 import { useState } from "react";
 import { toast } from "sonner";
+import {
+  formatPalletCount,
+  formatQuantity,
+  getLoadingPointLabel,
+  getPalletTotalsByLoadingPoint,
+} from "@/lib/pallets";
 
 interface Props {
   open: boolean;
@@ -17,14 +23,10 @@ export function OrderReviewDrawer({ open, onOpenChange, rows }: Props) {
   const [note, setNote] = useState("");
 
   const fmtBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
-  const fmtNum = new Intl.NumberFormat("pt-BR");
 
   const totalUnits = rows.reduce((s, r) => s + r.suggestion.editedSuggestion, 0);
   const totalValue = rows.reduce((s, r) => s + r.suggestion.editedSuggestion * r.product.unitPrice, 0);
-  const totalPallets = rows.reduce(
-    (s, r) => s + (r.product.unitsPerPallet > 0 ? r.suggestion.editedSuggestion / r.product.unitsPerPallet : 0),
-    0,
-  );
+  const palletTotals = getPalletTotalsByLoadingPoint(rows);
   const supplierShort = rows.filter((r) => r.suggestion.editedSuggestion > r.product.availableSupplierStock);
 
   const confirm = () => {
@@ -77,20 +79,25 @@ export function OrderReviewDrawer({ open, onOpenChange, rows }: Props) {
                       <ProductStatusBadge priority={suggestion.priority} />
                     </div>
                     <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
-                      {product.sku} · pallet {product.unitsPerPallet} un
+                      {product.sku} · pallet {formatQuantity(product.unitsPerPallet)} un
+                    </div>
+                    <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                      {getLoadingPointLabel(product.loadingPoint)}
                     </div>
                     <div className="text-[11px] text-muted-foreground mt-1">
-                      Sugerido <span className="font-mono text-foreground">{suggestion.finalSuggestion}</span>
+                      Sugerido{" "}
+                      <span className="font-mono text-foreground">{formatQuantity(suggestion.finalSuggestion)}</span>
                       {adjusted && (
                         <>
-                          {" · "}Ajustado <span className="font-mono text-target">{suggestion.editedSuggestion}</span>
+                          {" · "}Ajustado{" "}
+                          <span className="font-mono text-target">{formatQuantity(suggestion.editedSuggestion)}</span>
                         </>
                       )}
                     </div>
                   </div>
                   <div className="text-right shrink-0">
                     <div className="font-mono font-semibold tabular-nums text-sm">
-                      {fmtNum.format(suggestion.editedSuggestion)} un
+                      {formatQuantity(suggestion.editedSuggestion)} un
                     </div>
                     <div className="text-[11px] text-muted-foreground font-mono tabular-nums">
                       {fmtBRL.format(value)}
@@ -119,16 +126,35 @@ export function OrderReviewDrawer({ open, onOpenChange, rows }: Props) {
           <div className="grid grid-cols-3 gap-3 mb-4 text-xs">
             <div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Unidades</div>
-              <div className="font-mono font-semibold tabular-nums text-base">{fmtNum.format(totalUnits)}</div>
+              <div className="font-mono font-semibold tabular-nums text-base">{formatQuantity(totalUnits)}</div>
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Pallets</div>
-              <div className="font-mono font-semibold tabular-nums text-base">{totalPallets.toFixed(1)}</div>
+              <div className="font-mono font-semibold tabular-nums text-base">
+                {formatPalletCount(palletTotals.total)}
+              </div>
             </div>
             <div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Total</div>
               <div className="font-mono font-semibold tabular-nums text-base text-target">
                 {fmtBRL.format(totalValue)}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 mb-4 text-xs">
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Cheio</div>
+              <div className="font-mono font-semibold tabular-nums">{formatPalletCount(palletTotals.simple)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Misto</div>
+              <div className="font-mono font-semibold tabular-nums">{formatPalletCount(palletTotals.mixed)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-muted-foreground font-mono">Sem ponto</div>
+              <div className="font-mono font-semibold tabular-nums">
+                {formatPalletCount(palletTotals.unclassified)}
               </div>
             </div>
           </div>

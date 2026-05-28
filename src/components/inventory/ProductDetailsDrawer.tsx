@@ -3,6 +3,7 @@ import { ProductStatusBadge } from "./ProductStatusBadge";
 import { Sparkles, AlertTriangle, Package2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ComputedRow } from "@/types/inventory";
+import { formatPalletCount, formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
 
 interface Props {
   open: boolean;
@@ -48,7 +49,8 @@ export function ProductDetailsDrawer({ open, onOpenChange, row, onAskAi }: Props
               <div>
                 <div className="font-semibold text-critical mb-0.5">Estoque insuficiente no fornecedor</div>
                 <div className="text-muted-foreground">
-                  Sugestão de {suggestion.editedSuggestion} un, disponível apenas {product.availableSupplierStock} un.
+                  Sugestão de {formatQuantity(suggestion.editedSuggestion)} un, disponível apenas{" "}
+                  {formatQuantity(product.availableSupplierStock)} un.
                 </div>
               </div>
             </div>
@@ -57,8 +59,8 @@ export function ProductDetailsDrawer({ open, onOpenChange, row, onAskAi }: Props
           <div>
             <h4 className="text-xs uppercase tracking-widest text-muted-foreground font-mono mb-3">Telemetria</h4>
             <div className="grid grid-cols-2 gap-2">
-              <Stat label="Estoque atual" value={product.currentStock.toLocaleString("pt-BR")} />
-              <Stat label="Estoque segurança" value={product.safetyStock.toLocaleString("pt-BR")} />
+              <Stat label="Estoque atual" value={formatQuantity(product.currentStock)} />
+              <Stat label="Estoque segurança" value={formatQuantity(product.safetyStock)} />
               <Stat
                 label="Dias de cobertura"
                 value={isFinite(suggestion.stockDays) ? `${suggestion.stockDays.toFixed(1)}d` : "—"}
@@ -71,8 +73,9 @@ export function ProductDetailsDrawer({ open, onOpenChange, row, onAskAi }: Props
                 }
               />
               <Stat label="Giro médio" value={`${suggestion.averageTurnover.toFixed(1)}/d`} />
-              <Stat label="Meta categoria" value={product.categoryTarget} />
-              <Stat label="Múltiplo pallet" value={`${product.unitsPerPallet} un`} />
+              <Stat label="Meta categoria" value={formatQuantity(product.categoryTarget)} />
+              <Stat label="Múltiplo pallet" value={`${formatQuantity(product.unitsPerPallet)} un`} />
+              <Stat label="Ponto carga" value={getLoadingPointLabel(product.loadingPoint)} />
             </div>
           </div>
 
@@ -81,19 +84,21 @@ export function ProductDetailsDrawer({ open, onOpenChange, row, onAskAi }: Props
             <div className="bg-surface-2 border border-border rounded-md p-4 space-y-2 text-sm font-mono">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Sugestão calculada</span>
-                <span className="tabular-nums">{suggestion.rawSuggestion} un</span>
+                <span className="tabular-nums">{formatQuantity(suggestion.rawSuggestion)} un</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Múltiplo aplicado</span>
-                <span className="tabular-nums">{suggestion.multipleApplied} un / pallet</span>
+                <span className="tabular-nums">{formatQuantity(suggestion.multipleApplied)} un / pallet</span>
               </div>
               <div className="flex justify-between border-t border-border pt-2">
                 <span className="font-medium">Sugestão final</span>
-                <span className="tabular-nums text-target font-semibold">{suggestion.finalSuggestion} un</span>
+                <span className="tabular-nums text-target font-semibold">
+                  {formatQuantity(suggestion.finalSuggestion)} un
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Pallets estimados</span>
-                <span className="tabular-nums">{suggestion.palletCount.toFixed(2)}</span>
+                <span className="tabular-nums">{formatPalletCount(suggestion.palletCount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Valor estimado</span>

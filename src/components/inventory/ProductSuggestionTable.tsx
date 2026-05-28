@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { ProductStatusBadge } from "./ProductStatusBadge";
 import { SuggestionQuantityInput } from "./SuggestionQuantityInput";
 import { PRIORITY_RANK } from "@/lib/inventory-calc";
+import { formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
 import type { ComputedRow, Confidence } from "@/types/inventory";
 
 interface Props {
@@ -198,6 +199,9 @@ export function ProductSuggestionTable({
                           <div className="text-[11px] text-muted-foreground font-mono">
                             {product.sku} · {product.branchName}
                           </div>
+                          <div className="text-[10px] text-muted-foreground font-mono">
+                            {getLoadingPointLabel(product.loadingPoint)}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -211,17 +215,17 @@ export function ProductSuggestionTable({
                           product.currentStock < product.safetyStock && "text-critical font-semibold",
                         )}
                       >
-                        {product.currentStock.toLocaleString("pt-BR")}
+                        {formatQuantity(product.currentStock)}
                       </div>
                       <div className="text-[10px] text-muted-foreground">
-                        seg. {product.safetyStock}
+                        seg. {formatQuantity(product.safetyStock)}
                       </div>
                     </td>
                     <td className="py-3 px-3 text-center">
                       <div className="font-mono text-[11px] tabular-nums leading-tight">
-                        <div>30D <span className="text-foreground">{product.average30d}</span></div>
-                        <div>15D <span className="text-foreground">{product.average15d}</span></div>
-                        <div>1D <span className="text-foreground">{product.average1d}</span></div>
+                        <div>30D <span className="text-foreground">{formatQuantity(product.average30d)}</span></div>
+                        <div>15D <span className="text-foreground">{formatQuantity(product.average15d)}</span></div>
+                        <div>1D <span className="text-foreground">{formatQuantity(product.average1d)}</span></div>
                       </div>
                     </td>
                     <td className="py-3 px-3 text-center">
@@ -317,13 +321,16 @@ export function ProductSuggestionTable({
                     <div className="text-[11px] text-muted-foreground font-mono">
                       {product.sku} · {product.branchName}
                     </div>
+                    <div className="text-[10px] text-muted-foreground font-mono">
+                      {getLoadingPointLabel(product.loadingPoint)}
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">Estoque</div>
-                    <div className="font-mono font-semibold tabular-nums">{product.currentStock}</div>
+                    <div className="font-mono font-semibold tabular-nums">{formatQuantity(product.currentStock)}</div>
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">Dias</div>
@@ -338,7 +345,9 @@ export function ProductSuggestionTable({
                   </div>
                   <div>
                     <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-mono">Giro</div>
-                    <div className="font-mono font-semibold tabular-nums">{suggestion.averageTurnover.toFixed(0)}/d</div>
+                    <div className="font-mono font-semibold tabular-nums">
+                      {formatQuantity(suggestion.averageTurnover)}/d
+                    </div>
                   </div>
                 </div>
 
