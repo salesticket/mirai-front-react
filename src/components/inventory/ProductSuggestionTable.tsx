@@ -8,7 +8,7 @@ import { ProductStatusBadge } from "./ProductStatusBadge";
 import { SuggestionQuantityInput } from "./SuggestionQuantityInput";
 import { PRIORITY_RANK } from "@/lib/inventory-calc";
 import { formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
-import type { ComputedRow, Confidence } from "@/types/inventory";
+import type { ComputedRow, Confidence, Product } from "@/types/inventory";
 
 interface Props {
   rows: ComputedRow[];
@@ -41,6 +41,7 @@ const ROW_TINT: Record<string, string> = {
 };
 
 const PAGE_SIZE = 8;
+const requiresFullPallet = (product: Product) => product.loadingPoint?.type === "SIMPLE";
 
 export function ProductSuggestionTable({
   rows,
@@ -78,9 +79,10 @@ export function ProductSuggestionTable({
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageRows = sorted.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const selectablePageRows = pageRows.filter((r) => r.suggestion.editedSuggestion > 0);
 
   const allSelectedOnPage =
-    pageRows.length > 0 && pageRows.every((r) => selected.has(r.product.id));
+    selectablePageRows.length > 0 && selectablePageRows.every((r) => selected.has(r.product.id));
 
   const setSort = (k: SortKey) => {
     if (sortKey === k) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -125,6 +127,7 @@ export function ProductSuggestionTable({
                 <th className="py-3 px-3 w-10">
                   <Checkbox
                     checked={allSelectedOnPage}
+                    disabled={selectablePageRows.length === 0}
                     onCheckedChange={onToggleAll}
                     aria-label="Selecionar todos"
                   />
@@ -176,6 +179,7 @@ export function ProductSuggestionTable({
             <tbody>
               {pageRows.map(({ product, suggestion }) => {
                 const isSel = selected.has(product.id);
+                const canSelect = suggestion.editedSuggestion > 0;
                 const targetPct = Math.min(100, (product.currentStock / product.categoryTarget) * 100);
                 return (
                   <tr
@@ -187,7 +191,16 @@ export function ProductSuggestionTable({
                     )}
                   >
                     <td className="py-3 px-3">
-                      <Checkbox checked={isSel} onCheckedChange={() => onToggle(product.id)} />
+                      <Checkbox
+                        checked={isSel}
+                        disabled={!canSelect}
+                        onCheckedChange={() => onToggle(product.id)}
+                        aria-label={
+                          canSelect
+                            ? `Selecionar ${product.sku}`
+                            : `${product.sku} sem quantidade para pedido`
+                        }
+                      />
                     </td>
                     <td className="py-3 px-3">
                       <div className="flex items-center gap-3">
@@ -266,11 +279,13 @@ export function ProductSuggestionTable({
                           value={suggestion.editedSuggestion}
                           step={product.unitsPerPallet}
                           onChange={(q) => onChangeQty(product.id, q)}
+                          requireFullPallet={requiresFullPallet(product)}
                         />
                         <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                           <span className={CONFIDENCE_STYLE[suggestion.confidence]}>
                             ● {CONFIDENCE_LABEL[suggestion.confidence]}
                           </span>
+                          {!canSelect && <span className="text-attention">Sem quantidade</span>}
                           {suggestion.supplierShort && (
                             <Tooltip>
                               <TooltipTrigger>
@@ -306,13 +321,22 @@ export function ProductSuggestionTable({
         <div className="md:hidden divide-y divide-border">
           {pageRows.map(({ product, suggestion }) => {
             const isSel = selected.has(product.id);
+            const canSelect = suggestion.editedSuggestion > 0;
             return (
               <div
                 key={product.id}
                 className={cn("p-4 space-y-3", ROW_TINT[suggestion.priority], isSel && "bg-target/[0.06]")}
               >
                 <div className="flex items-start gap-3">
-                  <Checkbox checked={isSel} onCheckedChange={() => onToggle(product.id)} className="mt-1" />
+                  <Checkbox
+                    checked={isSel}
+                    disabled={!canSelect}
+                    onCheckedChange={() => onToggle(product.id)}
+                    className="mt-1"
+                    aria-label={
+                      canSelect ? `Selecionar ${product.sku}` : `${product.sku} sem quantidade para pedido`
+                    }
+                  />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <div className="font-medium text-sm">{product.name}</div>
@@ -356,6 +380,7 @@ export function ProductSuggestionTable({
                     value={suggestion.editedSuggestion}
                     step={product.unitsPerPallet}
                     onChange={(q) => onChangeQty(product.id, q)}
+                    requireFullPallet={requiresFullPallet(product)}
                   />
                   <Button size="sm" variant="outline" onClick={() => onOpenDetails({ product, suggestion })}>
                     <Eye className="size-4" />

@@ -11,17 +11,20 @@ import { OrderReviewDrawer } from "@/components/inventory/OrderReviewDrawer";
 import { ProductDetailsDrawer } from "@/components/inventory/ProductDetailsDrawer";
 import { AiAssistantDrawer } from "@/components/inventory/AiAssistantDrawer";
 import { calculatePalletCount, getPalletTotalsByLoadingPoint } from "@/lib/pallets";
-import type { ComputedRow, Confidence, LoadingPoint, Priority, Product, ProductSuggestion } from "@/types/inventory";
+import { apiUrl, readApiError } from "@/lib/api";
+import { saveLastOrderReport } from "@/lib/orders";
+import { useNavigate } from "react-router-dom";
+import type {
+  ComputedRow,
+  Confidence,
+  ConvertSuggestionToOrderResponse,
+  LoadingPoint,
+  Priority,
+  Product,
+  ProductSuggestion,
+} from "@/types/inventory";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, "");
-
-const apiUrl = (path: string) => {
-  if (!API_BASE_URL) {
-    throw new Error("Configure VITE_API_BASE_URL no arquivo .env.");
-  }
-
-  return `${API_BASE_URL}${path}`;
-};
 
 type BranchApi = {
   id: number;
@@ -62,6 +65,7 @@ type PurchaseSuggestionItemApi = {
 
 type PurchaseSuggestionGenerateResponse = {
   id: string;
+  status?: string;
   filial_id: number;
   total_produtos_analisados: number;
   total_itens_sugeridos: number;
@@ -135,6 +139,7 @@ const mapApiItemToRow = (
   };
 
   const suggestion: ProductSuggestion = {
+    purchaseSuggestionItemId: item.id,
     productId: item.productId,
     averageTurnover: averageDailyConsumption,
     rawSuggestion,
@@ -153,6 +158,7 @@ const mapApiItemToRow = (
 };
 
 const Index = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState("30d");
   const [filters, setFilters] = useState<FiltersState>({
     branchId: "1",
@@ -166,6 +172,8 @@ const Index = () => {
   const [generationBranchId, setGenerationBranchId] = useState("");
   const [branchById, setBranchById] = useState<Record<string, BranchApi>>({});
   const [rows, setRows] = useState<ComputedRow[]>([]);
+  const [purchaseSuggestionId, setPurchaseSuggestionId] = useState("");
+  const [purchaseSuggestionStatus, setPurchaseSuggestionStatus] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [orderOpen, setOrderOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -238,14 +246,7 @@ const Index = () => {
       });
 
       if (!response.ok) {
-        let message = "Não foi possível gerar a sugestão para esta filial.";
-        try {
-          const body = await response.json();
-          message = body?.message ?? body?.erro ?? body?.error ?? message;
-        } catch {
-          message = response.statusText || message;
-        }
-        throw new Error(message);
+        throw new Error(await readApiError(response, "Não foi possível gerar a sugestão para esta filial."));
       }
 
       const data = (await response.json()) as PurchaseSuggestionGenerateResponse;
@@ -254,6 +255,8 @@ const Index = () => {
       const nextRows = apiItems.map((item) => mapApiItemToRow(item, branch));
 
       setRows(nextRows);
+      setPurchaseSuggestionId(data.id);
+      setPurchaseSuggestionStatus(data.status ?? "GERADA");
       setSelected(new Set());
       setGenerated(true);
       setFilters((current) => ({ ...current, branchId: selectedBranchId }));
@@ -329,7 +332,23 @@ const Index = () => {
     return { critical, attention, target, ok, totalUnits, totalPallets, estimatedValue, fillRate };
   }, [rows]);
 
+  const isSelectableRow = (row: ComputedRow) => row.suggestion.editedSuggestion > 0;
+
   const toggle = (id: string) => {
+    const row = rows.find((item) => item.product.id === id);
+
+    if (row && !isSelectableRow(row)) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      toast.error("Quantidade inválida", {
+        description: `${row.product.sku} precisa ter quantidade maior que zero para entrar no pedido.`,
+      });
+      return;
+    }
+
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -340,15 +359,26 @@ const Index = () => {
 
   const toggleAll = () => {
     setSelected((prev) => {
-      const allIds = filteredRows.map((r) => r.product.id);
-      const allSelected = allIds.every((id) => prev.has(id));
+      const allIds = filteredRows.map((row) => row.product.id);
+      const selectableIds = filteredRows.filter(isSelectableRow).map((row) => row.product.id);
+      const allSelected = selectableIds.length > 0 && selectableIds.every((id) => prev.has(id));
+
       if (allSelected) {
         const next = new Set(prev);
         allIds.forEach((id) => next.delete(id));
         return next;
       }
+
       const next = new Set(prev);
-      allIds.forEach((id) => next.add(id));
+      allIds.forEach((id) => next.delete(id));
+      selectableIds.forEach((id) => next.add(id));
+
+      if (selectableIds.length < allIds.length) {
+        toast.warning("Produtos sem quantidade foram ignorados", {
+          description: "Somente itens com quantidade maior que zero entram no pedido.",
+        });
+      }
+
       return next;
     });
   };
@@ -367,9 +397,17 @@ const Index = () => {
         };
       }),
     );
+
+    if (qty <= 0) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   };
 
-  const selectedRows = filteredRows.filter((r) => selected.has(r.product.id));
+  const selectedRows = filteredRows.filter((r) => selected.has(r.product.id) && isSelectableRow(r));
   const selectedTotals = selectedRows.reduce(
     (acc, r) => {
       acc.units += r.suggestion.editedSuggestion;
@@ -384,6 +422,42 @@ const Index = () => {
   const openDetails = (row: ComputedRow) => {
     setDetailsRow(row);
     setDetailsOpen(true);
+  };
+
+  const openOrderReview = () => {
+    if (!purchaseSuggestionId) {
+      toast.error("Sugestão não encontrada", {
+        description: "Gere uma sugestão antes de confirmar o pedido.",
+      });
+      return;
+    }
+
+    if (selectedRows.length === 0) {
+      toast.error("Selecione ao menos um produto", {
+        description: "O pedido precisa de produtos selecionados para ser gerado.",
+      });
+      return;
+    }
+
+    const invalidQuantity = selectedRows.find((row) => row.suggestion.editedSuggestion <= 0);
+    if (invalidQuantity) {
+      toast.error("Quantidade inválida", {
+        description: `${invalidQuantity.product.sku} precisa ter quantidade maior que zero.`,
+      });
+      return;
+    }
+
+    setOrderOpen(true);
+  };
+
+  const handleOrderConverted = (order: ConvertSuggestionToOrderResponse) => {
+    saveLastOrderReport(order);
+    setPurchaseSuggestionStatus("CONVERTIDA");
+    setSelected(new Set());
+    toast.success("Pedido criado com sucesso", {
+      description: `${order.code} · ${order.summary.physicalPallets} pallets montados`,
+    });
+    navigate("/reports");
   };
 
   return (
@@ -447,10 +521,17 @@ const Index = () => {
         unclassifiedPallets={selectedPalletTotals.unclassified}
         estimatedValue={selectedTotals.value}
         onClear={() => setSelected(new Set())}
-        onGenerate={() => setOrderOpen(true)}
+        onGenerate={openOrderReview}
       />
 
-      <OrderReviewDrawer open={orderOpen} onOpenChange={setOrderOpen} rows={selectedRows} />
+      <OrderReviewDrawer
+        open={orderOpen}
+        onOpenChange={setOrderOpen}
+        rows={selectedRows}
+        purchaseSuggestionId={purchaseSuggestionId}
+        purchaseSuggestionStatus={purchaseSuggestionStatus}
+        onConverted={handleOrderConverted}
+      />
       <ProductDetailsDrawer
         open={detailsOpen}
         onOpenChange={setDetailsOpen}

@@ -30,6 +30,7 @@ export interface Product {
 }
 
 export interface ProductSuggestion {
+  purchaseSuggestionItemId?: string;
   productId: string;
   averageTurnover: number;
   rawSuggestion: number;
@@ -47,4 +48,63 @@ export interface ProductSuggestion {
 export interface ComputedRow {
   product: Product;
   suggestion: ProductSuggestion;
+}
+
+export interface OrderLoadingPoint {
+  id: number;
+  name: string;
+  type: LoadingPointType;
+  maxProductsPerMixedPallet?: number | null;
+}
+
+export interface ConvertSuggestionToOrderPayload {
+  createdById?: string;
+  items: Array<{
+    purchaseSuggestionItemId?: string;
+    productId: string;
+    quantity: number;
+    editReason?: string;
+  }>;
+}
+
+export interface ConvertSuggestionToOrderResponse {
+  orderId: string;
+  code: string;
+  status: string;
+  purchaseSuggestionId: string;
+  summary: {
+    totalProducts: number;
+    totalUnits: number;
+    totalPalletOccupancy: number;
+    fullPallets: number;
+    partialPallets: number;
+    mixedPallets: number;
+    physicalPallets: number;
+    estimatedValue?: string | number | null;
+  };
+  items: Array<{
+    id: string;
+    productId: string;
+    sku: string | null;
+    productName: string | null;
+    loadingPoint: OrderLoadingPoint | null;
+    finalQuantity: string | number;
+    quantityPerPallet: string | number;
+    totalPallets: string | number;
+    manuallyEdited: boolean;
+    editReason: string | null;
+  }>;
+  loadingPointDemands: Array<{
+    id: string;
+    loadingPoint: OrderLoadingPoint;
+    totalPallets: string | number;
+    summary: {
+      totalPalletOccupancy: number;
+      fullPallets: number;
+      partialPallets: number;
+      mixedPallets: number;
+      physicalPallets: number;
+    };
+    palletCount: number;
+  }>;
 }

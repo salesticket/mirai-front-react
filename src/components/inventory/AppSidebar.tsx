@@ -12,25 +12,27 @@ import {
   ShoppingCart,
 } from "lucide-react";
 import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { AiAssistantDrawer } from "./AiAssistantDrawer";
 
 const NAV = [
-  { id: "overview", label: "Visão Geral", icon: LayoutDashboard, group: "OPERAÇÃO" },
-  { id: "supply", label: "Gestão de Abastecimento", icon: Boxes, group: "OPERAÇÃO", active: true },
-  { id: "risk", label: "Risco de Ruptura", icon: TrendingUp, group: "OPERAÇÃO" },
-  { id: "suggestion", label: "Sugestão de Compra", icon: Sparkles, group: "OPERAÇÃO" },
-  { id: "orders", label: "Pedidos", icon: ShoppingCart, group: "CADASTROS" },
-  { id: "products", label: "Produtos", icon: PackageSearch, group: "CADASTROS" },
-  { id: "suppliers", label: "Fornecedores", icon: Truck, group: "CADASTROS" },
-  { id: "reports", label: "Relatórios", icon: FileBarChart, group: "ANÁLISE" },
-  { id: "alerts", label: "Alertas", icon: Bell, group: "ANÁLISE" },
-  { id: "settings", label: "Configurações", icon: Settings, group: "SISTEMA" },
+  { id: "overview", label: "Visão Geral", icon: LayoutDashboard, group: "OPERAÇÃO", href: "/" },
+  { id: "supply", label: "Gestão de Abastecimento", icon: Boxes, group: "OPERAÇÃO", href: "/" },
+  { id: "risk", label: "Risco de Ruptura", icon: TrendingUp, group: "OPERAÇÃO", href: "/" },
+  { id: "suggestion", label: "Sugestão de Compra", icon: Sparkles, group: "OPERAÇÃO", href: "/" },
+  { id: "orders", label: "Pedidos", icon: ShoppingCart, group: "CADASTROS", href: "/" },
+  { id: "products", label: "Produtos", icon: PackageSearch, group: "CADASTROS", href: "/" },
+  { id: "suppliers", label: "Fornecedores", icon: Truck, group: "CADASTROS", href: "/" },
+  { id: "reports", label: "Relatórios", icon: FileBarChart, group: "ANÁLISE", href: "/reports" },
+  { id: "alerts", label: "Alertas", icon: Bell, group: "ANÁLISE", href: "/" },
+  { id: "settings", label: "Configurações", icon: Settings, group: "SISTEMA", href: "/" },
 ];
 
 export function AppSidebar() {
   const [aiOpen, setAiOpen] = useState(false);
+  const location = useLocation();
 
   const groups = NAV.reduce<Record<string, typeof NAV>>((acc, item) => {
     (acc[item.group] ||= []).push(item);
@@ -65,13 +67,17 @@ export function AppSidebar() {
               <ul className="space-y-0.5">
                 {items.map((item) => {
                   const Icon = item.icon;
+                  const active =
+                    item.href === "/reports"
+                      ? location.pathname === "/reports"
+                      : location.pathname === "/" && item.id === "supply";
                   return (
                     <li key={item.id}>
-                      <a
-                        href="#"
+                      <Link
+                        to={item.href}
                         className={cn(
                           "flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors",
-                          item.active
+                          active
                             ? "bg-sidebar-accent text-foreground font-medium border-l-2 border-target"
                             : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                         )}
@@ -83,7 +89,7 @@ export function AppSidebar() {
                             12
                           </span>
                         )}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
@@ -131,4 +137,3 @@ export function AppSidebar() {
     </>
   );
 }
-
