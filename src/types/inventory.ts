@@ -106,5 +106,23 @@ export interface ConvertSuggestionToOrderResponse {
       physicalPallets: number;
     };
     palletCount: number;
+    pallets?: Array<{
+      id: string;
+      type: "FULL" | "PARTIAL" | "MIXED" | string;
+      sequenceNumber: number;
+      productCount: number;
+      status: string;
+      estimatedWeightKg?: string | number | null;
+      occupancy: string | number;
+      items: Array<{
+        id: string;
+        productId: string;
+        orderItemId: string;
+        sku: string | null;
+        productName: string | null;
+        quantity: string | number;
+        occupancyPercentage: string | number;
+      }>;
+    }>;
   }>;
 }

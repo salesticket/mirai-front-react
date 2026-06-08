@@ -1,10 +1,19 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, FileBarChart, Package2 } from "lucide-react";
+import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck } from "lucide-react";
 import { AppSidebar } from "@/components/inventory/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getLastOrderReport } from "@/lib/orders";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { fetchOrderSummary, getLastOrderReport, saveLastOrderReport } from "@/lib/orders";
 import { formatPalletCount, formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
+import type { ConvertSuggestionToOrderResponse } from "@/types/inventory";
 
 const toNumber = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? 0 : Number(value);
@@ -25,9 +34,62 @@ const SummaryMetric = ({ label, value }: { label: string; value: string | number
   </div>
 );
 
+type LoadingPointDemand = ConvertSuggestionToOrderResponse["loadingPointDemands"][number];
+type Pallet = NonNullable<LoadingPointDemand["pallets"]>[number];
+type PalletCardData = {
+  demand: LoadingPointDemand;
+  pallet: Pallet;
+};
+
+const palletTypeLabel = (type: string) => {
+  if (type === "FULL") return "Cheio";
+  if (type === "PARTIAL") return "Parcial";
+  if (type === "MIXED") return "Misto";
+  return type;
+};
+
+const palletTypeStyle = (type: string) => {
+  if (type === "FULL") return "border-ok/30 bg-ok/10 text-ok";
+  if (type === "PARTIAL") return "border-attention/30 bg-attention/10 text-attention";
+  if (type === "MIXED") return "border-target/30 bg-target/10 text-target";
+  return "border-border bg-accent text-muted-foreground";
+};
+
 const Reports = () => {
-  const report = getLastOrderReport();
+  const [report, setReport] = useState(() => getLastOrderReport());
+  const [loadingSummary, setLoadingSummary] = useState(false);
+  const [selectedPallet, setSelectedPallet] = useState<PalletCardData | null>(null);
   const order = report?.order;
+  const palletCards = useMemo(
+    () =>
+      order?.loadingPointDemands.flatMap((demand) =>
+        (demand.pallets ?? []).map((pallet) => ({ demand, pallet })),
+      ) ?? [],
+    [order],
+  );
+
+  useEffect(() => {
+    if (!order?.orderId) return;
+
+    let mounted = true;
+    setLoadingSummary(true);
+    fetchOrderSummary(order.orderId)
+      .then((summary) => {
+        if (!mounted) return;
+        saveLastOrderReport(summary);
+        setReport({ savedAt: new Date().toISOString(), order: summary });
+      })
+      .catch(() => {
+        if (!mounted) return;
+      })
+      .finally(() => {
+        if (mounted) setLoadingSummary(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [order?.orderId]);
 
   return (
     <div className="min-h-dvh w-full flex bg-background">
@@ -92,8 +154,14 @@ const Reports = () => {
 
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 <div className="sm:col-span-2 xl:col-span-4">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Montagem definitiva retornada pela API
+                  <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <span>Montagem definitiva retornada pela API</span>
+                    {loadingSummary && (
+                      <span className="inline-flex items-center gap-1 text-target">
+                        <Loader2 className="size-3 animate-spin" />
+                        Atualizando
+                      </span>
+                    )}
                   </div>
                 </div>
                 <SummaryMetric label="Produtos" value={formatQuantity(order.summary.totalProducts)} />
@@ -107,6 +175,89 @@ const Reports = () => {
                 <SummaryMetric label="Pallets parciais" value={formatQuantity(order.summary.partialPallets)} />
                 <SummaryMetric label="Pallets mistos" value={formatQuantity(order.summary.mixedPallets)} />
                 <SummaryMetric label="Valor estimado" value={formatCurrency(order.summary.estimatedValue)} />
+              </section>
+
+              <section className="rounded-lg border border-border bg-surface-1">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+                  <div>
+                    <h2 className="text-base font-semibold">Pallets montados</h2>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Composição física calculada pelo backend para cada ponto de carregamento.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="border-target/40 bg-target/10 text-target">
+                    {formatQuantity(palletCards.length)} pallets
+                  </Badge>
+                </div>
+
+                {palletCards.length === 0 ? (
+                  <div className="p-5 text-sm text-muted-foreground">
+                    A API ainda não retornou a lista física de pallets para esta Order.
+                  </div>
+                ) : (
+                  <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    {palletCards.map(({ demand, pallet }) => {
+                      const typeStyle = palletTypeStyle(pallet.type);
+                      const occupancy = toNumber(pallet.occupancy);
+                      const firstItems = pallet.items.slice(0, 2);
+
+                      return (
+                        <button
+                          key={pallet.id}
+                          type="button"
+                          onClick={() => setSelectedPallet({ demand, pallet })}
+                          className="rounded-md border border-border bg-surface-2 p-4 text-left transition hover:border-target/50 hover:bg-accent/50"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex min-w-0 items-center gap-3">
+                              <div className={`flex size-10 shrink-0 items-center justify-center rounded-md border ${typeStyle}`}>
+                                {pallet.type === "MIXED" ? (
+                                  <Layers3 className="size-5" />
+                                ) : (
+                                  <PackageCheck className="size-5" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="font-mono text-sm font-semibold tabular-nums">
+                                  Pallet #{String(pallet.sequenceNumber).padStart(2, "0")}
+                                </div>
+                                <div className="truncate text-[11px] text-muted-foreground">
+                                  {demand.loadingPoint.name}
+                                </div>
+                              </div>
+                            </div>
+                            <Badge variant="outline" className={typeStyle}>
+                              {palletTypeLabel(pallet.type)}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-accent">
+                            <div
+                              className="h-full rounded-full bg-target"
+                              style={{ width: `${Math.min(100, occupancy * 100)}%` }}
+                            />
+                          </div>
+
+                          <div className="mt-3 space-y-1.5">
+                            {firstItems.map((item) => (
+                              <div key={item.id} className="flex items-center justify-between gap-3 text-xs">
+                                <span className="truncate text-muted-foreground">{item.productName ?? item.sku}</span>
+                                <span className="shrink-0 font-mono tabular-nums text-foreground">
+                                  {formatQuantity(toNumber(item.quantity))} un
+                                </span>
+                              </div>
+                            ))}
+                            {pallet.items.length > firstItems.length && (
+                              <div className="text-[11px] text-muted-foreground">
+                                +{pallet.items.length - firstItems.length} produtos
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
 
               <section className="rounded-lg border border-border bg-surface-1">
@@ -203,6 +354,72 @@ const Reports = () => {
           )}
         </div>
       </main>
+
+      <Dialog open={Boolean(selectedPallet)} onOpenChange={(open) => !open && setSelectedPallet(null)}>
+        <DialogContent className="max-w-2xl border-border bg-surface-1">
+          {selectedPallet && (
+            <>
+              <DialogHeader>
+                <div className="mb-2 flex items-center gap-3">
+                  <div
+                    className={`flex size-11 items-center justify-center rounded-md border ${palletTypeStyle(
+                      selectedPallet.pallet.type,
+                    )}`}
+                  >
+                    <Boxes className="size-5" />
+                  </div>
+                  <div>
+                    <DialogTitle>
+                      Pallet #{String(selectedPallet.pallet.sequenceNumber).padStart(2, "0")}{" "}
+                      {palletTypeLabel(selectedPallet.pallet.type)}
+                    </DialogTitle>
+                    <DialogDescription>{selectedPallet.demand.loadingPoint.name}</DialogDescription>
+                  </div>
+                </div>
+              </DialogHeader>
+
+              <div className="grid gap-3 text-xs sm:grid-cols-3">
+                <SummaryMetric
+                  label="Produtos"
+                  value={formatQuantity(selectedPallet.pallet.productCount)}
+                />
+                <SummaryMetric
+                  label="Ocupação"
+                  value={`${formatPalletCount(toNumber(selectedPallet.pallet.occupancy) * 100)}%`}
+                />
+                <SummaryMetric label="Status" value={selectedPallet.pallet.status} />
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-md border border-border">
+                <div className="grid grid-cols-[minmax(0,1fr)_110px_90px] gap-3 border-b border-border bg-surface-2 px-4 py-3 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <div>Produto</div>
+                  <div className="text-right">Quantidade</div>
+                  <div className="text-right">Ocupação</div>
+                </div>
+                <div className="max-h-[45dvh] overflow-y-auto scrollbar-thin">
+                  {selectedPallet.pallet.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="grid grid-cols-[minmax(0,1fr)_110px_90px] gap-3 border-b border-border/60 px-4 py-3 text-sm last:border-b-0"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-medium">{item.productName ?? "Produto"}</div>
+                        <div className="font-mono text-[11px] text-muted-foreground">{item.sku ?? "SKU"}</div>
+                      </div>
+                      <div className="text-right font-mono tabular-nums">
+                        {formatQuantity(toNumber(item.quantity))} un
+                      </div>
+                      <div className="text-right font-mono tabular-nums text-muted-foreground">
+                        {formatPalletCount(toNumber(item.occupancyPercentage))}%
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

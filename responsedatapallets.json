@@ -1,0 +1,375 @@
+{
+	"order": {
+		"id": "0bdb0c7b-354e-49b1-8e2a-ef632848f0c0",
+		"code": "REP-1780932756115-5M0MSA",
+		"status": "UNDER_REVIEW",
+		"origin": "AUTOMATIC",
+		"branchId": 3,
+		"branchName": "Teófilo Otoni MG",
+		"inventoryReferenceDate": "2026-06-02T15:26:12.070Z",
+		"notes": "Converted from purchase suggestion 3f882e1e-617f-4cfb-be06-1271154de966",
+		"createdAt": "2026-06-08T15:32:36.083Z",
+		"updatedAt": "2026-06-08T15:32:36.083Z",
+		"branch": {
+			"id": 3,
+			"name": "Teófilo Otoni MG"
+		}
+	},
+	"summary": {
+		"totalProducts": 3,
+		"totalUnits": 2086,
+		"totalPalletOccupancy": 10.962,
+		"fullPallets": 10,
+		"partialPallets": 2,
+		"mixedPallets": 0,
+		"physicalPallets": 12
+	},
+	"items": [
+		{
+			"id": "16f3403d-74d6-400d-88ad-3992281fbda5",
+			"productId": "d4e95935-337a-4d20-93f6-e84ff07553bc",
+			"loadingPointId": 2,
+			"sku": "56443",
+			"productName": "Coca-Cola Zero PET 200ml (12) FI",
+			"currentInventoryQuantity": "22.000",
+			"averageDailyConsumption": "110.190",
+			"availableStockDays": "0.200",
+			"safetyStockDays": 10,
+			"targetStockDays": null,
+			"suggestedQuantity": "1079.900",
+			"finalQuantity": "1080.000",
+			"quantityPerPallet": "360.000",
+			"totalPallets": "3.000",
+			"classification": "CRITICAL",
+			"priority": "CRITICAL",
+			"manuallyEdited": false,
+			"editReason": null
+		},
+		{
+			"id": "3746774b-4c8e-4dfb-b430-1ce12ddbe58a",
+			"productId": "d003de21-0270-4aa1-8d05-5fc254b949cd",
+			"loadingPointId": 1,
+			"sku": "55994",
+			"productName": "COCA COLA SA PET 6X1L 06X1L",
+			"currentInventoryQuantity": "6.000",
+			"averageDailyConsumption": "25.850",
+			"availableStockDays": "0.232",
+			"safetyStockDays": 10,
+			"targetStockDays": 66,
+			"suggestedQuantity": "252.500",
+			"finalQuantity": "253.000",
+			"quantityPerPallet": "150.000",
+			"totalPallets": "1.687",
+			"classification": "CRITICAL",
+			"priority": "CRITICAL",
+			"manuallyEdited": false,
+			"editReason": null
+		},
+		{
+			"id": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+			"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+			"loadingPointId": 2,
+			"sku": "56602",
+			"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+			"currentInventoryQuantity": "211.000",
+			"averageDailyConsumption": "96.390",
+			"availableStockDays": "2.189",
+			"safetyStockDays": 10,
+			"targetStockDays": null,
+			"suggestedQuantity": "752.900",
+			"finalQuantity": "753.000",
+			"quantityPerPallet": "120.000",
+			"totalPallets": "6.275",
+			"classification": "CRITICAL",
+			"priority": "CRITICAL",
+			"manuallyEdited": false,
+			"editReason": null
+		}
+	],
+	"loadingPointDemands": [
+		{
+			"id": "78a54d76-6211-41ec-9a53-3b401d92a15b",
+			"status": "PENDING",
+			"loadingPoint": {
+				"id": 1,
+				"name": "BFFF - Mixed Pallet Factory",
+				"type": "MIXED",
+				"maxProductsPerMixedPallet": 3
+			},
+			"totalPallets": "1.687",
+			"totalWeightKg": null,
+			"summary": {
+				"totalPalletOccupancy": 1.687,
+				"fullPallets": 1,
+				"partialPallets": 1,
+				"mixedPallets": 0,
+				"physicalPallets": 2
+			},
+			"palletCount": 2,
+			"pallets": [
+				{
+					"id": "20d6b315-31ea-41f4-a89d-077703e9e161",
+					"type": "FULL",
+					"sequenceNumber": 1,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "82e5bc40-c5f1-4f63-8e5e-52aeca9bbfdb",
+							"productId": "d003de21-0270-4aa1-8d05-5fc254b949cd",
+							"orderItemId": "3746774b-4c8e-4dfb-b430-1ce12ddbe58a",
+							"sku": "55994",
+							"productName": "COCA COLA SA PET 6X1L 06X1L",
+							"quantity": "150.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "213884d1-5058-4aa2-8dc5-951f7e07e874",
+					"type": "PARTIAL",
+					"sequenceNumber": 2,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 0.687,
+					"items": [
+						{
+							"id": "bd1ede65-7269-4a4a-a7fd-2bdb18c5b570",
+							"productId": "d003de21-0270-4aa1-8d05-5fc254b949cd",
+							"orderItemId": "3746774b-4c8e-4dfb-b430-1ce12ddbe58a",
+							"sku": "55994",
+							"productName": "COCA COLA SA PET 6X1L 06X1L",
+							"quantity": "103.000",
+							"occupancyPercentage": "68.700"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "6958814c-4b35-4ffb-a925-b4339f0a15df",
+			"status": "PENDING",
+			"loadingPoint": {
+				"id": 2,
+				"name": "Itabirito - Full Pallet Factory",
+				"type": "SIMPLE",
+				"maxProductsPerMixedPallet": null
+			},
+			"totalPallets": "9.275",
+			"totalWeightKg": null,
+			"summary": {
+				"totalPalletOccupancy": 9.275,
+				"fullPallets": 9,
+				"partialPallets": 1,
+				"mixedPallets": 0,
+				"physicalPallets": 10
+			},
+			"palletCount": 10,
+			"pallets": [
+				{
+					"id": "0ac6c2c1-64b0-41c9-9000-1684a6dcd218",
+					"type": "FULL",
+					"sequenceNumber": 1,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "ddcb4116-afa9-4a87-b14f-e9de49af1cd7",
+							"productId": "d4e95935-337a-4d20-93f6-e84ff07553bc",
+							"orderItemId": "16f3403d-74d6-400d-88ad-3992281fbda5",
+							"sku": "56443",
+							"productName": "Coca-Cola Zero PET 200ml (12) FI",
+							"quantity": "360.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "0996af4c-a2ce-4fc6-8169-adcbbf4ea58a",
+					"type": "FULL",
+					"sequenceNumber": 2,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "06f63dba-c229-4eb1-aa29-b66baa9f8890",
+							"productId": "d4e95935-337a-4d20-93f6-e84ff07553bc",
+							"orderItemId": "16f3403d-74d6-400d-88ad-3992281fbda5",
+							"sku": "56443",
+							"productName": "Coca-Cola Zero PET 200ml (12) FI",
+							"quantity": "360.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "f924c7cc-7806-46bd-90e1-5c227a934b88",
+					"type": "FULL",
+					"sequenceNumber": 3,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "09038919-9b93-463a-b1c8-09e6b46efef2",
+							"productId": "d4e95935-337a-4d20-93f6-e84ff07553bc",
+							"orderItemId": "16f3403d-74d6-400d-88ad-3992281fbda5",
+							"sku": "56443",
+							"productName": "Coca-Cola Zero PET 200ml (12) FI",
+							"quantity": "360.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "63c7ccb2-ec1b-4c72-8a42-b6b0444c85d6",
+					"type": "FULL",
+					"sequenceNumber": 4,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "800f278c-54f3-4f83-877e-db72faf8a403",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "5509a040-884b-479b-98c1-7634c5112444",
+					"type": "FULL",
+					"sequenceNumber": 5,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "7d9cfc47-5b5b-4a4c-89a9-e7440ac6ff8e",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "e2d50bef-c5e8-43ba-b462-80e5eff8d94a",
+					"type": "FULL",
+					"sequenceNumber": 6,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "545cc35d-78b5-46f6-a59b-7fb56efea241",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "05d90968-c8aa-46ad-abdf-c5f169d97d81",
+					"type": "FULL",
+					"sequenceNumber": 7,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "0e269ac8-3daa-450f-89fc-f5fc3660a0b9",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "6835b149-05a3-47f5-acc3-efe23e839cf6",
+					"type": "FULL",
+					"sequenceNumber": 8,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "71af05d1-b2ae-45e1-8891-cae72b877548",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "2c1ba0a1-5e91-4007-a4e1-025b86f1de76",
+					"type": "FULL",
+					"sequenceNumber": 9,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 1,
+					"items": [
+						{
+							"id": "ed09ef05-eb30-4121-8c5f-5e4bc6e88b87",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "120.000",
+							"occupancyPercentage": "100.000"
+						}
+					]
+				},
+				{
+					"id": "26fcb8d1-011e-46c5-be34-61ae1a674c05",
+					"type": "PARTIAL",
+					"sequenceNumber": 10,
+					"productCount": 1,
+					"status": "GENERATED",
+					"estimatedWeightKg": null,
+					"occupancy": 0.275,
+					"items": [
+						{
+							"id": "ac6acdbb-ad99-42e0-8d0b-6e632b034795",
+							"productId": "16df5669-4339-4e32-9c2c-a5eeb72e6dc9",
+							"orderItemId": "d2ddc93c-cf1a-47b0-92e4-9a604d290dca",
+							"sku": "56602",
+							"productName": "Multipack 1CCO + 1FT GUA PET 2L (2x2) L+P-",
+							"quantity": "33.000",
+							"occupancyPercentage": "27.500"
+						}
+					]
+				}
+			]
+		}
+	]
+}

@@ -36,12 +36,47 @@ export const convertSuggestionToOrder = async (
   return response.json() as Promise<ConvertSuggestionToOrderResponse>;
 };
 
+export const normalizeOrderReport = (data: unknown): ConvertSuggestionToOrderResponse => {
+  const raw = data as ConvertSuggestionToOrderResponse & {
+    id?: string;
+    order?: {
+      id?: string;
+      code?: string;
+      status?: string;
+      purchaseSuggestionId?: string;
+      notes?: string | null;
+    };
+  };
+
+  return {
+    ...raw,
+    orderId: raw.orderId ?? raw.id ?? raw.order?.id ?? "",
+    code: raw.code ?? raw.order?.code ?? "",
+    status: raw.status ?? raw.order?.status ?? "",
+    purchaseSuggestionId:
+      raw.purchaseSuggestionId ?? raw.order?.purchaseSuggestionId ?? raw.order?.notes?.match(/[0-9a-f-]{36}/i)?.[0] ?? "",
+    summary: raw.summary,
+    items: raw.items ?? [],
+    loadingPointDemands: raw.loadingPointDemands ?? [],
+  };
+};
+
+export const fetchOrderSummary = async (orderId: string) => {
+  const response = await fetch(apiUrl(`/replenishment-orders/${orderId}/summary`));
+
+  if (!response.ok) {
+    throw new Error(await readApiError(response, "Não foi possível carregar o resumo de pallets da Order."));
+  }
+
+  return normalizeOrderReport(await response.json());
+};
+
 export const saveLastOrderReport = (order: ConvertSuggestionToOrderResponse) => {
   localStorage.setItem(
     LAST_ORDER_REPORT_KEY,
     JSON.stringify({
       savedAt: new Date().toISOString(),
-      order,
+      order: normalizeOrderReport(order),
     }),
   );
 };
@@ -51,7 +86,8 @@ export const getLastOrderReport = () => {
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as { savedAt: string; order: ConvertSuggestionToOrderResponse };
+    const parsed = JSON.parse(raw) as { savedAt: string; order: unknown };
+    return { ...parsed, order: normalizeOrderReport(parsed.order) };
   } catch {
     return null;
   }

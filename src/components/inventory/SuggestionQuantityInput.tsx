@@ -27,8 +27,9 @@ export function SuggestionQuantityInput({
   className,
   requireFullPallet = false,
 }: Props) {
-  const dec = () => onChange(Math.max(0, value - step));
-  const inc = () => onChange(value + step);
+  const quantityStep = step > 0 ? step : 1;
+  const dec = () => onChange(Math.max(0, value - quantityStep));
+  const inc = () => onChange(value + quantityStep);
   const hasInvalidPalletQuantity = requireFullPallet && !isMultipleOfPallet(value, step);
 
   return (
