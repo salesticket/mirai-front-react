@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck } from "lucide-react";
+import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck, Pencil } from "lucide-react";
 import { AppSidebar } from "@/components/inventory/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 import { fetchOrderSummary, getLastOrderReport, saveLastOrderReport } from "@/lib/orders";
 import { formatPalletCount, formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
 import type { ConvertSuggestionToOrderResponse } from "@/types/inventory";
+import { EditOrderItemsModal } from "@/components/inventory/EditOrderItemsModal";
 
 const toNumber = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? 0 : Number(value);
@@ -59,7 +60,15 @@ const Reports = () => {
   const [report, setReport] = useState(() => getLastOrderReport());
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [selectedPallet, setSelectedPallet] = useState<PalletCardData | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const order = report?.order;
+  const canEdit = order?.status === "DRAFT" || order?.status === "UNDER_REVIEW";
+
+  const handleOrderSaved = (updated: ConvertSuggestionToOrderResponse) => {
+    saveLastOrderReport(updated);
+    setReport({ savedAt: new Date().toISOString(), order: updated });
+  };
+
   const palletCards = useMemo(
     () =>
       order?.loadingPointDemands.flatMap((demand) =>
@@ -146,9 +155,22 @@ const Reports = () => {
                       <div>Pedido salvo em {report ? formatDateTime(report.savedAt) : "agora"}</div>
                     </div>
                   </div>
-                  <Badge variant="outline" className="border-target/40 bg-target/10 text-target">
-                    {order.status}
-                  </Badge>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="border-target/40 bg-target/10 text-target">
+                      {order.status}
+                    </Badge>
+                    {canEdit && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 h-7 text-xs border-target/30 text-target hover:bg-target/10 hover:border-target/50"
+                        onClick={() => setEditModalOpen(true)}
+                      >
+                        <Pencil className="size-3" />
+                        Editar pedido
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </section>
 
@@ -261,8 +283,19 @@ const Reports = () => {
               </section>
 
               <section className="rounded-lg border border-border bg-surface-1">
-                <div className="border-b border-border px-5 py-4">
+                <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-4">
                   <h2 className="text-base font-semibold">Produtos confirmados</h2>
+                  {canEdit && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="gap-1.5 h-8 text-xs"
+                      onClick={() => setEditModalOpen(true)}
+                    >
+                      <Pencil className="size-3" />
+                      Editar itens
+                    </Button>
+                  )}
                 </div>
                 <div className="overflow-x-auto scrollbar-thin">
                   <table className="w-full text-sm">
@@ -354,6 +387,18 @@ const Reports = () => {
           )}
         </div>
       </main>
+
+      {order && (
+        <EditOrderItemsModal
+          open={editModalOpen}
+          onOpenChange={setEditModalOpen}
+          orderId={order.orderId}
+          orderCode={order.code}
+          purchaseSuggestionId={order.purchaseSuggestionId}
+          currentItems={order.items}
+          onSaved={handleOrderSaved}
+        />
+      )}
 
       <Dialog open={Boolean(selectedPallet)} onOpenChange={(open) => !open && setSelectedPallet(null)}>
         <DialogContent className="max-w-2xl border-border bg-surface-1">

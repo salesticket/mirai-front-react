@@ -1,5 +1,9 @@
 import { apiUrl, readApiError } from "@/lib/api";
-import type { ConvertSuggestionToOrderPayload, ConvertSuggestionToOrderResponse } from "@/types/inventory";
+import type {
+  ConvertSuggestionToOrderPayload,
+  ConvertSuggestionToOrderResponse,
+  PurchaseSuggestionItem,
+} from "@/types/inventory";
 
 const LAST_ORDER_REPORT_KEY = "restock-mirai:last-order-report";
 
@@ -68,6 +72,33 @@ export const fetchOrderSummary = async (orderId: string) => {
     throw new Error(await readApiError(response, "Não foi possível carregar o resumo de pallets da Order."));
   }
 
+  return normalizeOrderReport(await response.json());
+};
+
+export const fetchPurchaseSuggestionItems = async (suggestionId: string): Promise<PurchaseSuggestionItem[]> => {
+  const response = await fetch(apiUrl(`/purchase-suggestions/${suggestionId}/items`));
+  if (!response.ok) {
+    throw new Error(await readApiError(response, "Não foi possível carregar os itens da sugestão."));
+  }
+  return response.json();
+};
+
+export const patchOrderItems = async (
+  orderId: string,
+  payload: { items: unknown[] },
+): Promise<ConvertSuggestionToOrderResponse> => {
+  const response = await fetch(apiUrl(`/replenishment-orders/${orderId}/items`), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const fallback =
+      response.status === 400
+        ? "Dados inválidos. Verifique as quantidades e motivos de edição."
+        : "Não foi possível atualizar os itens do pedido.";
+    throw new Error(await readApiError(response, fallback));
+  }
   return normalizeOrderReport(await response.json());
 };
 

@@ -67,6 +67,18 @@ export interface ConvertSuggestionToOrderPayload {
   }>;
 }
 
+export interface PurchaseSuggestionItem {
+  id: string;
+  productId: string;
+  productName?: string | null;
+  sku?: string | null;
+  finalQuantity?: number | string | null;
+  suggestedQuantity?: number | string | null;
+  quantity?: number | string | null;
+  finalSuggestion?: number | string | null;
+  quantityPerPallet?: number | string | null;
+}
+
 export interface ConvertSuggestionToOrderResponse {
   orderId: string;
   code: string;
