@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck, Pencil, Shuffle } from "lucide-react";
 import { AppSidebar } from "@/components/inventory/AppSidebar";
@@ -15,7 +15,12 @@ import { fetchOrderSummary, getLastOrderReport, saveLastOrderReport } from "@/li
 import { formatPalletCount, formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
 import type { ConvertSuggestionToOrderResponse } from "@/types/inventory";
 import { EditOrderItemsModal } from "@/components/inventory/EditOrderItemsModal";
-import { PalletArrangementModal } from "@/components/inventory/PalletArrangementModal";
+
+const PalletArrangementModal = lazy(() =>
+  import("@/components/inventory/PalletArrangementModal").then((m) => ({
+    default: m.PalletArrangementModal,
+  }))
+);
 
 const toNumber = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? 0 : Number(value);
@@ -64,7 +69,7 @@ const Reports = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [palletModalOpen, setPalletModalOpen] = useState(false);
   const order = report?.order;
-  const canEdit = order?.status === "DRAFT" || order?.status === "UNDER_REVIEW";
+  const canEdit = ["DRAFT", "UNDER_REVIEW"].includes((order?.status ?? "").trim().toUpperCase());
 
   const handleOrderSaved = (updated: ConvertSuggestionToOrderResponse) => {
     saveLastOrderReport(updated);
@@ -416,12 +421,14 @@ const Reports = () => {
       )}
 
       {order && (
-        <PalletArrangementModal
-          open={palletModalOpen}
-          onOpenChange={setPalletModalOpen}
-          order={order}
-          onSaved={handleOrderSaved}
-        />
+        <Suspense fallback={null}>
+          <PalletArrangementModal
+            open={palletModalOpen}
+            onOpenChange={setPalletModalOpen}
+            order={order}
+            onSaved={handleOrderSaved}
+          />
+        </Suspense>
       )}
 
       <Dialog open={Boolean(selectedPallet)} onOpenChange={(open) => !open && setSelectedPallet(null)}>
