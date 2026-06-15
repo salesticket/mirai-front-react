@@ -102,6 +102,29 @@ export const patchOrderItems = async (
   return normalizeOrderReport(await response.json());
 };
 
+export const patchPalletArrangement = async (
+  orderId: string,
+  demandId: string,
+  payload: { pallets: { items: { orderItemId: string; quantity: number }[] }[] },
+): Promise<ConvertSuggestionToOrderResponse> => {
+  const response = await fetch(
+    apiUrl(`/replenishment-orders/${orderId}/demands/${demandId}/pallet-arrangement`),
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    },
+  );
+  if (!response.ok) {
+    const fallback =
+      response.status === 400
+        ? "Arranjo inválido. Verifique as quantidades e regras de ponto de carregamento."
+        : "Não foi possível salvar o arranjo de pallets.";
+    throw new Error(await readApiError(response, fallback));
+  }
+  return normalizeOrderReport(await response.json());
+};
+
 export const saveLastOrderReport = (order: ConvertSuggestionToOrderResponse) => {
   localStorage.setItem(
     LAST_ORDER_REPORT_KEY,

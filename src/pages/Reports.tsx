@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck, Pencil } from "lucide-react";
+import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck, Pencil, Shuffle } from "lucide-react";
 import { AppSidebar } from "@/components/inventory/AppSidebar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { fetchOrderSummary, getLastOrderReport, saveLastOrderReport } from "@/li
 import { formatPalletCount, formatQuantity, getLoadingPointLabel } from "@/lib/pallets";
 import type { ConvertSuggestionToOrderResponse } from "@/types/inventory";
 import { EditOrderItemsModal } from "@/components/inventory/EditOrderItemsModal";
+import { PalletArrangementModal } from "@/components/inventory/PalletArrangementModal";
 
 const toNumber = (value: string | number | null | undefined) =>
   value === null || value === undefined || value === "" ? 0 : Number(value);
@@ -61,6 +62,7 @@ const Reports = () => {
   const [loadingSummary, setLoadingSummary] = useState(false);
   const [selectedPallet, setSelectedPallet] = useState<PalletCardData | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [palletModalOpen, setPalletModalOpen] = useState(false);
   const order = report?.order;
   const canEdit = order?.status === "DRAFT" || order?.status === "UNDER_REVIEW";
 
@@ -207,9 +209,22 @@ const Reports = () => {
                       Composição física calculada pelo backend para cada ponto de carregamento.
                     </p>
                   </div>
-                  <Badge variant="outline" className="border-target/40 bg-target/10 text-target">
-                    {formatQuantity(palletCards.length)} pallets
-                  </Badge>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="border-target/40 bg-target/10 text-target">
+                      {formatQuantity(palletCards.length)} pallets
+                    </Badge>
+                    {canEdit && palletCards.length > 0 && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 h-7 text-xs"
+                        onClick={() => setPalletModalOpen(true)}
+                      >
+                        <Shuffle className="size-3" />
+                        Compor Pallets Manualmente
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 {palletCards.length === 0 ? (
@@ -396,6 +411,15 @@ const Reports = () => {
           orderCode={order.code}
           purchaseSuggestionId={order.purchaseSuggestionId}
           currentItems={order.items}
+          onSaved={handleOrderSaved}
+        />
+      )}
+
+      {order && (
+        <PalletArrangementModal
+          open={palletModalOpen}
+          onOpenChange={setPalletModalOpen}
+          order={order}
           onSaved={handleOrderSaved}
         />
       )}
