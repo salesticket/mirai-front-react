@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Boxes, FileBarChart, Layers3, Loader2, Package2, PackageCheck, Pencil, Shuffle } from "lucide-react";

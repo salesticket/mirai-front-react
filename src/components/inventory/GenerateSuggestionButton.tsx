@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import { useState } from "react";
 import { Sparkles, RefreshCcw, Loader2, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import { cn } from "@/lib/utils";
 import type { Priority } from "@/types/inventory";
 

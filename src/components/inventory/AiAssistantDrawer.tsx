@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import { Sparkles, Send } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";

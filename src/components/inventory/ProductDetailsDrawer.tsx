@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ProductStatusBadge } from "./ProductStatusBadge";
 import { Sparkles, AlertTriangle, Package2 } from "lucide-react";

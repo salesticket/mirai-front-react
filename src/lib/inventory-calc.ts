@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 import type { Confidence, Priority, Product, ProductSuggestion } from "@/types/inventory";
 
 /** Weighted average turnover (units / day). 1d gets the most recent weight. */

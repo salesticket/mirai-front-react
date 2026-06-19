@@ -1,3 +1,9 @@
+/*
+ * mirai-frontend
+ * Desenvolvido originalmente por Bruno Bonetti — 2026
+ * github.com/bonettibruno24 · brunobonetti.silva1@gmail.com
+ */
+
 export type Priority = "critical" | "attention" | "target" | "ok";
 export type Confidence = "high" | "medium" | "low";
 export type LoadingPointType = "SIMPLE" | "MIXED" | string;
